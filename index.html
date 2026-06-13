@@ -1,0 +1,621 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TaskFlow — Enes Emre Hasturk</title>
+  <meta name="description" content="A modern task management web application — Web Application Development, Student: Enes Emre Hasturk, ID: 7949" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    /* ─── Reset & Base ─────────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:        #0a0a0f;
+      --bg2:       #12121a;
+      --bg3:       #1a1a26;
+      --border:    rgba(255,255,255,0.08);
+      --glass:     rgba(255,255,255,0.04);
+      --glass2:    rgba(255,255,255,0.07);
+      --text:      #f0f0ff;
+      --muted:     #8888aa;
+      --accent:    #7c6cfc;
+      --accent2:   #a78bfa;
+      --accent3:   #6ee7b7;
+      --danger:    #f87171;
+      --warn:      #fbbf24;
+      --low:       #6ee7b7;
+      --medium:    #fbbf24;
+      --high:      #f87171;
+      --radius:    16px;
+      --shadow:    0 8px 32px rgba(0,0,0,0.5);
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* ─── Animated Background ──────────────────────────────────── */
+    .bg-orbs {
+      position: fixed; inset: 0; pointer-events: none; z-index: 0;
+    }
+    .orb {
+      position: absolute; border-radius: 50%; filter: blur(80px); opacity: 0.18;
+      animation: float 12s ease-in-out infinite;
+    }
+    .orb-1 { width: 520px; height: 520px; background: #7c6cfc; top: -160px; left: -100px; animation-delay: 0s; }
+    .orb-2 { width: 400px; height: 400px; background: #a78bfa; bottom: -100px; right: -80px; animation-delay: -4s; }
+    .orb-3 { width: 280px; height: 280px; background: #6ee7b7; top: 40%; left: 50%; animation-delay: -8s; }
+
+    @keyframes float {
+      0%, 100% { transform: translate(0, 0) scale(1); }
+      33%       { transform: translate(30px, -40px) scale(1.05); }
+      66%       { transform: translate(-20px, 20px) scale(0.97); }
+    }
+
+    /* ─── Layout ────────────────────────────────────────────────── */
+    .container {
+      position: relative; z-index: 1;
+      max-width: 780px; margin: 0 auto;
+      padding: 48px 20px 80px;
+    }
+
+    /* ─── Header ────────────────────────────────────────────────── */
+    header {
+      text-align: center;
+      margin-bottom: 48px;
+      animation: fadeDown 0.6s ease both;
+    }
+    .logo {
+      display: inline-flex; align-items: center; gap: 10px;
+      font-size: 13px; font-weight: 600; letter-spacing: 0.12em;
+      text-transform: uppercase; color: var(--muted);
+      background: var(--glass2); border: 1px solid var(--border);
+      padding: 6px 16px; border-radius: 999px;
+      margin-bottom: 24px;
+    }
+    .logo-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 8px var(--accent); }
+    header h1 {
+      font-size: clamp(36px, 6vw, 58px);
+      font-weight: 800; letter-spacing: -2px; line-height: 1.05;
+      background: linear-gradient(135deg, #fff 0%, var(--accent2) 50%, var(--accent3) 100%);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+      margin-bottom: 12px;
+    }
+    header p {
+      font-size: 15px; color: var(--muted); font-weight: 400;
+    }
+    .student-badge {
+      display: inline-flex; align-items: center; gap: 8px;
+      margin-top: 16px; padding: 8px 18px;
+      background: var(--glass); border: 1px solid var(--border);
+      border-radius: 999px; font-size: 12px; color: var(--muted);
+    }
+    .student-badge strong { color: var(--accent2); }
+
+    @keyframes fadeDown { from { opacity:0; transform:translateY(-24px); } to { opacity:1; transform:translateY(0); } }
+
+    /* ─── Stats Bar ─────────────────────────────────────────────── */
+    .stats-bar {
+      display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px;
+      margin-bottom: 28px;
+      animation: fadeUp 0.6s ease 0.1s both;
+    }
+    .stat-card {
+      background: var(--glass2); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 16px;
+      text-align: center; transition: border-color 0.3s;
+    }
+    .stat-card:hover { border-color: var(--accent); }
+    .stat-num {
+      font-size: 28px; font-weight: 800;
+      background: linear-gradient(135deg, #fff, var(--accent2));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+    }
+    .stat-label { font-size: 11px; color: var(--muted); margin-top: 2px; text-transform: uppercase; letter-spacing: 0.08em; }
+
+    /* ─── Form Card ─────────────────────────────────────────────── */
+    .form-card {
+      background: var(--glass2); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 28px;
+      margin-bottom: 28px;
+      backdrop-filter: blur(12px);
+      animation: fadeUp 0.6s ease 0.2s both;
+    }
+    .form-card h2 {
+      font-size: 16px; font-weight: 700; margin-bottom: 20px;
+      display: flex; align-items: center; gap: 8px; color: var(--text);
+    }
+    .form-card h2 .icon { font-size: 18px; }
+
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .form-col { display: flex; flex-direction: column; gap: 12px; }
+
+    label { font-size: 12px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; display: block; margin-bottom: 6px; }
+
+    input[type="text"], textarea, select {
+      width: 100%; padding: 12px 16px;
+      background: var(--bg); border: 1px solid var(--border);
+      border-radius: 10px; color: var(--text);
+      font-family: 'Inter', sans-serif; font-size: 14px;
+      outline: none; transition: border-color 0.25s, box-shadow 0.25s;
+    }
+    input[type="text"]:focus, textarea:focus, select:focus {
+      border-color: var(--accent); box-shadow: 0 0 0 3px rgba(124,108,252,0.2);
+    }
+    textarea { min-height: 72px; resize: vertical; }
+    select option { background: #1a1a26; }
+
+    .btn {
+      display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+      padding: 12px 24px; border: none; border-radius: 10px;
+      font-family: 'Inter', sans-serif; font-size: 14px; font-weight: 600;
+      cursor: pointer; transition: all 0.25s; text-decoration: none;
+    }
+    .btn-primary {
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      color: #fff; box-shadow: 0 4px 16px rgba(124,108,252,0.4);
+    }
+    .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(124,108,252,0.5); }
+    .btn-primary:active { transform: translateY(0); }
+
+    /* ─── Filter Bar ────────────────────────────────────────────── */
+    .filter-bar {
+      display: flex; gap: 8px; flex-wrap: wrap; align-items: center;
+      margin-bottom: 20px;
+      animation: fadeUp 0.6s ease 0.3s both;
+    }
+    .filter-btn {
+      padding: 7px 16px; border-radius: 999px;
+      background: var(--glass); border: 1px solid var(--border);
+      color: var(--muted); font-size: 13px; font-weight: 500;
+      cursor: pointer; transition: all 0.2s;
+    }
+    .filter-btn:hover { border-color: var(--accent); color: var(--text); }
+    .filter-btn.active { background: var(--accent); border-color: var(--accent); color: #fff; box-shadow: 0 0 12px rgba(124,108,252,0.4); }
+    .search-wrap { flex: 1; min-width: 200px; position: relative; }
+    .search-wrap input { padding-left: 40px; }
+    .search-icon { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--muted); font-size: 16px; pointer-events: none; }
+
+    /* ─── Todo List ─────────────────────────────────────────────── */
+    .todo-list {
+      display: flex; flex-direction: column; gap: 12px;
+      animation: fadeUp 0.6s ease 0.4s both;
+    }
+
+    .todo-item {
+      background: var(--glass2); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 18px 20px;
+      display: flex; align-items: flex-start; gap: 14px;
+      transition: all 0.3s; position: relative; overflow: hidden;
+    }
+    .todo-item::before {
+      content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 3px;
+      background: linear-gradient(to bottom, var(--accent), var(--accent2));
+      opacity: 0; transition: opacity 0.3s;
+    }
+    .todo-item:hover { border-color: rgba(124,108,252,0.3); transform: translateX(4px); }
+    .todo-item:hover::before { opacity: 1; }
+    .todo-item.done { opacity: 0.5; }
+    .todo-item.done .todo-title { text-decoration: line-through; color: var(--muted); }
+
+    .todo-check {
+      width: 22px; height: 22px; border-radius: 50%;
+      border: 2px solid var(--border); flex-shrink: 0;
+      cursor: pointer; transition: all 0.2s;
+      display: flex; align-items: center; justify-content: center;
+      margin-top: 1px;
+    }
+    .todo-check:hover { border-color: var(--accent3); }
+    .todo-item.done .todo-check { background: var(--accent3); border-color: var(--accent3); }
+    .todo-check .check-icon { display: none; font-size: 13px; }
+    .todo-item.done .todo-check .check-icon { display: block; }
+
+    .todo-body { flex: 1; min-width: 0; }
+    .todo-title { font-size: 15px; font-weight: 600; margin-bottom: 4px; }
+    .todo-desc { font-size: 13px; color: var(--muted); }
+
+    .todo-meta {
+      display: flex; align-items: center; gap: 8px; margin-top: 10px; flex-wrap: wrap;
+    }
+    .priority-badge {
+      font-size: 11px; font-weight: 700; letter-spacing: 0.06em;
+      text-transform: uppercase; padding: 3px 10px; border-radius: 999px;
+    }
+    .priority-badge.low    { background: rgba(110,231,183,0.15); color: var(--low); }
+    .priority-badge.medium { background: rgba(251,191,36,0.15);  color: var(--medium); }
+    .priority-badge.high   { background: rgba(248,113,113,0.15); color: var(--high); }
+
+    .todo-id { font-size: 11px; color: rgba(255,255,255,0.2); font-family: monospace; }
+
+    .todo-actions { display: flex; gap: 6px; flex-shrink: 0; }
+    .icon-btn {
+      width: 32px; height: 32px; border-radius: 8px;
+      background: var(--glass); border: 1px solid var(--border);
+      color: var(--muted); font-size: 14px;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; transition: all 0.2s;
+    }
+    .icon-btn:hover.done-btn  { background: rgba(110,231,183,0.15); color: var(--accent3); border-color: var(--accent3); }
+    .icon-btn:hover.del-btn   { background: rgba(248,113,113,0.15); color: var(--danger); border-color: var(--danger); }
+
+    /* ─── Empty State ───────────────────────────────────────────── */
+    .empty-state {
+      text-align: center; padding: 60px 20px;
+      color: var(--muted);
+    }
+    .empty-state .empty-icon { font-size: 56px; margin-bottom: 16px; opacity: 0.4; }
+    .empty-state p { font-size: 15px; }
+
+    /* ─── Toast ─────────────────────────────────────────────────── */
+    .toast-container { position: fixed; bottom: 24px; right: 24px; z-index: 999; display: flex; flex-direction: column; gap: 8px; }
+    .toast {
+      background: var(--bg3); border: 1px solid var(--border);
+      color: var(--text); padding: 14px 20px; border-radius: 12px;
+      font-size: 14px; font-weight: 500;
+      box-shadow: var(--shadow); backdrop-filter: blur(8px);
+      display: flex; align-items: center; gap: 10px;
+      animation: slideIn 0.3s ease; min-width: 240px;
+    }
+    .toast.success { border-color: rgba(110,231,183,0.4); }
+    .toast.error   { border-color: rgba(248,113,113,0.4); }
+    @keyframes slideIn { from { opacity:0; transform: translateX(40px); } to { opacity:1; transform: translateX(0); } }
+    @keyframes slideOut { to { opacity:0; transform: translateX(40px); } }
+
+    @keyframes fadeUp { from { opacity:0; transform:translateY(20px); } to { opacity:1; transform:translateY(0); } }
+
+    /* ─── Offline Banner ─────────────────────────────────────────── */
+    .offline-notice {
+      background: rgba(251,191,36,0.1); border: 1px solid rgba(251,191,36,0.3);
+      border-radius: 10px; padding: 12px 16px; margin-bottom: 20px;
+      font-size: 13px; color: var(--warn); display: none;
+      align-items: center; gap: 10px;
+    }
+    .offline-notice.show { display: flex; }
+
+    /* ─── Loading skeleton ───────────────────────────────────────── */
+    .skeleton {
+      background: linear-gradient(90deg, var(--glass) 25%, var(--glass2) 50%, var(--glass) 75%);
+      background-size: 200% 100%;
+      animation: shimmer 1.5s infinite;
+      border-radius: 8px; height: 72px;
+    }
+    @keyframes shimmer { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }
+
+    /* ─── Responsive ─────────────────────────────────────────────── */
+    @media (max-width: 600px) {
+      .form-row { grid-template-columns: 1fr; }
+      .stats-bar { grid-template-columns: repeat(2, 1fr); }
+    }
+  </style>
+</head>
+<body>
+
+<!-- Animated background -->
+<div class="bg-orbs">
+  <div class="orb orb-1"></div>
+  <div class="orb orb-2"></div>
+  <div class="orb orb-3"></div>
+</div>
+
+<!-- Toast notifications -->
+<div class="toast-container" id="toastContainer"></div>
+
+<!-- Main -->
+<div class="container">
+
+  <!-- Header -->
+  <header>
+    <div class="logo">
+      <span class="logo-dot"></span>
+      Web Application Development
+    </div>
+    <h1>TaskFlow</h1>
+    <p>Manage your tasks with style.</p>
+    <div class="student-badge">
+      <span>👤</span>
+      <strong>Enes Emre Hasturk</strong>
+      <span style="opacity:0.4">·</span>
+      <span>ID: 7949</span>
+    </div>
+  </header>
+
+  <!-- Stats -->
+  <div class="stats-bar">
+    <div class="stat-card">
+      <div class="stat-num" id="statTotal">0</div>
+      <div class="stat-label">Total</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-num" id="statPending" style="background:linear-gradient(135deg,#fff,#fbbf24);-webkit-background-clip:text;-webkit-text-fill-color:transparent;">0</div>
+      <div class="stat-label">Pending</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-num" id="statDone" style="background:linear-gradient(135deg,#fff,#6ee7b7);-webkit-background-clip:text;-webkit-text-fill-color:transparent;">0</div>
+      <div class="stat-label">Done</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-num" id="statHigh" style="background:linear-gradient(135deg,#fff,#f87171);-webkit-background-clip:text;-webkit-text-fill-color:transparent;">0</div>
+      <div class="stat-label">High Priority</div>
+    </div>
+  </div>
+
+  <!-- Offline notice -->
+  <div class="offline-notice" id="offlineNotice">
+    ⚠️ <span>Flask server not running — using demo mode (data not saved to server).</span>
+  </div>
+
+  <!-- Add Task Form -->
+  <div class="form-card">
+    <h2><span class="icon">✦</span> Add New Task</h2>
+    <div class="form-row">
+      <div class="form-col">
+        <div>
+          <label for="inputTitle">Task Title *</label>
+          <input type="text" id="inputTitle" placeholder="What needs to be done?" />
+        </div>
+        <div>
+          <label for="inputDesc">Description</label>
+          <textarea id="inputDesc" placeholder="Optional details…"></textarea>
+        </div>
+      </div>
+      <div class="form-col">
+        <div>
+          <label for="inputPriority">Priority</label>
+          <select id="inputPriority">
+            <option value="medium">⚡ Medium</option>
+            <option value="high">🔥 High</option>
+            <option value="low">🌿 Low</option>
+          </select>
+        </div>
+        <button class="btn btn-primary" id="addBtn" onclick="addTask()" style="width:100%;margin-top:auto;">
+          <span>＋</span> Add Task
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Filter & Search -->
+  <div class="filter-bar">
+    <button class="filter-btn active" id="filterAll" onclick="setFilter('all')">All</button>
+    <button class="filter-btn" id="filterPending" onclick="setFilter('pending')">Pending</button>
+    <button class="filter-btn" id="filterDone" onclick="setFilter('done')">Done</button>
+    <button class="filter-btn" id="filterHigh" onclick="setFilter('high')">🔥 High</button>
+    <div class="search-wrap">
+      <span class="search-icon">🔍</span>
+      <input type="text" id="searchInput" placeholder="Search tasks…" oninput="renderTodos()" />
+    </div>
+  </div>
+
+  <!-- Todo List -->
+  <div class="todo-list" id="todoList">
+    <div class="skeleton"></div>
+    <div class="skeleton" style="height:56px;opacity:0.6"></div>
+    <div class="skeleton" style="height:48px;opacity:0.4"></div>
+  </div>
+
+</div>
+
+<script>
+// ─── State ───────────────────────────────────────────────────
+const API = 'http://localhost:5000';
+let todos = [];
+let nextId = 1;
+let currentFilter = 'all';
+let useServer = false;   // will be detected on load
+
+// ─── Server detection ─────────────────────────────────────────
+async function detectServer() {
+  try {
+    const r = await fetch(API + '/todos', { signal: AbortSignal.timeout(1500) });
+    if (r.ok) {
+      useServer = true;
+      document.getElementById('offlineNotice').classList.remove('show');
+    }
+  } catch {
+    useServer = false;
+    document.getElementById('offlineNotice').classList.add('show');
+    seedDemoData();
+  }
+}
+
+function seedDemoData() {
+  todos = [
+    { id: 1, title: 'Build the Flask API', description: 'Implement all CRUD endpoints for todos', completed: true, priority: 'high' },
+    { id: 2, title: 'Write automated tests', description: 'Use pytest to cover registration and login', completed: false, priority: 'high' },
+    { id: 3, title: 'Study JWT authentication', description: 'Understand how tokens work in web apps', completed: false, priority: 'medium' },
+    { id: 4, title: 'Design the database schema', description: 'Authors, Books, Tags relationships', completed: true, priority: 'medium' },
+    { id: 5, title: 'Read Flask documentation', description: '', completed: false, priority: 'low' },
+  ];
+  nextId = 6;
+  renderTodos();
+}
+
+// ─── API calls ────────────────────────────────────────────────
+async function fetchTodos() {
+  if (!useServer) return;
+  try {
+    const r = await fetch(API + '/todos');
+    todos = await r.json();
+    if (todos.length) nextId = Math.max(...todos.map(t => t.id)) + 1;
+    renderTodos();
+  } catch { toast('Could not reach server', 'error'); }
+}
+
+async function serverCreate(task) {
+  const r = await fetch(API + '/todos', {
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(task)
+  });
+  return r.ok ? await r.json() : null;
+}
+
+async function serverDelete(id) {
+  await fetch(API + '/todos/' + id, { method: 'DELETE' });
+}
+
+async function serverDone(id) {
+  await fetch(API + '/todos/' + id + '/done', { method: 'POST' });
+}
+
+// ─── Add task ─────────────────────────────────────────────────
+async function addTask() {
+  const title    = document.getElementById('inputTitle').value.trim();
+  const desc     = document.getElementById('inputDesc').value.trim();
+  const priority = document.getElementById('inputPriority').value;
+
+  if (!title) {
+    shake('inputTitle');
+    toast('Title is required!', 'error');
+    return;
+  }
+
+  const newTask = { id: nextId++, title, description: desc, completed: false, priority };
+
+  if (useServer) {
+    const created = await serverCreate({ title, description: desc, priority });
+    if (created) { todos.push(created); }
+    else { toast('Server error!', 'error'); return; }
+  } else {
+    todos.push(newTask);
+  }
+
+  document.getElementById('inputTitle').value = '';
+  document.getElementById('inputDesc').value  = '';
+  document.getElementById('inputPriority').value = 'medium';
+
+  renderTodos();
+  toast('Task added!', 'success');
+}
+
+// ─── Mark done ────────────────────────────────────────────────
+async function markDone(id) {
+  const t = todos.find(x => x.id === id);
+  if (!t) return;
+  t.completed = !t.completed;
+  if (useServer) await serverDone(id);
+  renderTodos();
+  toast(t.completed ? 'Task completed! ✓' : 'Marked as pending', 'success');
+}
+
+// ─── Delete ───────────────────────────────────────────────────
+async function deleteTask(id) {
+  todos = todos.filter(t => t.id !== id);
+  if (useServer) await serverDelete(id);
+  renderTodos();
+  toast('Task deleted', 'success');
+}
+
+// ─── Filter ───────────────────────────────────────────────────
+function setFilter(f) {
+  currentFilter = f;
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('filter' + f.charAt(0).toUpperCase() + f.slice(1)).classList.add('active');
+  renderTodos();
+}
+
+// ─── Render ───────────────────────────────────────────────────
+function renderTodos() {
+  const q = document.getElementById('searchInput').value.trim().toLowerCase();
+
+  let filtered = todos.filter(t => {
+    if (currentFilter === 'pending') return !t.completed;
+    if (currentFilter === 'done')    return t.completed;
+    if (currentFilter === 'high')    return t.priority === 'high';
+    return true;
+  });
+
+  if (q) {
+    filtered = filtered.filter(t =>
+      t.title.toLowerCase().includes(q) ||
+      (t.description || '').toLowerCase().includes(q)
+    );
+  }
+
+  // Stats
+  document.getElementById('statTotal').textContent   = todos.length;
+  document.getElementById('statPending').textContent = todos.filter(t => !t.completed).length;
+  document.getElementById('statDone').textContent    = todos.filter(t => t.completed).length;
+  document.getElementById('statHigh').textContent    = todos.filter(t => t.priority === 'high').length;
+
+  const list = document.getElementById('todoList');
+
+  if (filtered.length === 0) {
+    list.innerHTML = `
+      <div class="empty-state">
+        <div class="empty-icon">${q ? '🔍' : currentFilter === 'done' ? '🎉' : '📋'}</div>
+        <p>${q ? 'No tasks match your search.' : currentFilter !== 'all' ? 'No tasks here.' : 'No tasks yet — add your first one above!'}</p>
+      </div>`;
+    return;
+  }
+
+  list.innerHTML = filtered.map((t, i) => `
+    <div class="todo-item${t.completed ? ' done' : ''}"
+         style="animation: fadeUp 0.3s ease ${i * 0.05}s both;"
+         id="todo-${t.id}">
+      <div class="todo-check" onclick="markDone(${t.id})" title="${t.completed ? 'Undo' : 'Mark done'}">
+        <span class="check-icon">✓</span>
+      </div>
+      <div class="todo-body">
+        <div class="todo-title">${escapeHtml(t.title)}</div>
+        ${t.description ? `<div class="todo-desc">${escapeHtml(t.description)}</div>` : ''}
+        <div class="todo-meta">
+          <span class="priority-badge ${t.priority}">${priorityIcon(t.priority)} ${t.priority}</span>
+          <span class="todo-id">#${t.id}</span>
+        </div>
+      </div>
+      <div class="todo-actions">
+        <button class="icon-btn done-btn" onclick="markDone(${t.id})" title="${t.completed ? 'Undo' : 'Complete'}">
+          ${t.completed ? '↩' : '✓'}
+        </button>
+        <button class="icon-btn del-btn" onclick="deleteTask(${t.id})" title="Delete">🗑</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+// ─── Helpers ──────────────────────────────────────────────────
+function priorityIcon(p) {
+  return p === 'high' ? '🔥' : p === 'medium' ? '⚡' : '🌿';
+}
+function escapeHtml(s) {
+  return (s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+function shake(id) {
+  const el = document.getElementById(id);
+  el.style.animation = 'none';
+  el.style.borderColor = 'var(--danger)';
+  el.style.boxShadow = '0 0 0 3px rgba(248,113,113,0.2)';
+  setTimeout(() => { el.style.borderColor = ''; el.style.boxShadow = ''; }, 1000);
+}
+function toast(msg, type = 'success') {
+  const c = document.getElementById('toastContainer');
+  const el = document.createElement('div');
+  el.className = `toast ${type}`;
+  el.innerHTML = `<span>${type === 'success' ? '✓' : '✕'}</span> ${msg}`;
+  c.appendChild(el);
+  setTimeout(() => { el.style.animation = 'slideOut 0.3s ease forwards'; setTimeout(() => el.remove(), 300); }, 2800);
+}
+
+// ─── Enter key on input ────────────────────────────────────────
+document.getElementById('inputTitle').addEventListener('keydown', e => {
+  if (e.key === 'Enter') addTask();
+});
+
+// ─── Init ─────────────────────────────────────────────────────
+(async () => {
+  await detectServer();
+  if (useServer) await fetchTodos();
+  else renderTodos();   // demo data already rendered in seedDemoData
+})();
+</script>
+</body>
+</html>
